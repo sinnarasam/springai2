@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NARA sam Chatbot</title>
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 h-screen flex flex-col">
+<div class="container mx-auto p-4 flex-1 flex flex-col">
+    <h1 class="text-2xl font-bold mb-4 text-center text-gray-800">NARA sam Chatbot</h1>
+
+    <div class="flex-1 overflow-y-auto mb-4 p-4 bg-white rounded-lg shadow">
+        <div id="chat-messages" class="whitespace-pre-wrap break-words">
+            <!-- Chat messages will be inserted here -->
+        </div>
+    </div>
+
+    <form hx-post="/chat" 
+          hx-target="#chat-messages" 
+          hx-swap="none" 
+          class="flex items-center">
+        <input
+                type="text"
+                name="message"
+                placeholder="Type your message..."
+                class="flex-1 p-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+        >
+        <button
+                type="submit"
+                class="bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            Send
+        </button>
+    </form>
+</div>
+
+<script>
+    // 사용자와 챗봇의 이모티콘을 분리
+    function getRandomUserEmoji() {
+        const emojis = ['👋', '💭', '❓', '💡', '🤔', '📝', '💬', '🗨️', '❤️', '✋'];
+        return emojis[Math.floor(Math.random() * emojis.length)];
+    }
+
+    function getRandomBotEmoji() {
+        const emojis = ['🤖', '🌟', '💫', '✨', '🎯', '🎨', '🎭', '🎪', '🎡', '🎢'];
+        return emojis[Math.floor(Math.random() * emojis.length)];
+    }
+
+    htmx.on("htmx:afterRequest", function(evt) {
+        if (evt.detail.elt.tagName === "FORM") {
+            const userMessage = evt.detail.elt.querySelector('input[name="message"]').value;
+            const chatMessages = document.getElementById('chat-messages');
+            
+            // 사용자 메시지 추가 (이모티콘 포함)
+            const userDiv = document.createElement('div');
+            userDiv.className = 'mb-2 text-right';
+            const userEmoji = getRandomUserEmoji();
+            userDiv.innerHTML = `<span class="bg-blue-100 rounded px-2 py-1 inline-block">${userEmoji} ${userMessage}</span>`;
+            chatMessages.appendChild(userDiv);
+            
+            // 챗봇 응답 추가
+            if (evt.detail.xhr.response) {
+                const botDiv = document.createElement('div');
+                botDiv.className = 'mb-2';
+                const botEmoji = getRandomBotEmoji();
+                botDiv.innerHTML = `<span class="bg-gray-100 rounded px-2 py-1 inline-block">${botEmoji} ${evt.detail.xhr.response}</span>`;
+                chatMessages.appendChild(botDiv);
+            }
+            
+            // 폼 초기화 및 스크롤
+            evt.detail.elt.reset();
+            chatMessages.parentElement.scrollTop = chatMessages.parentElement.scrollHeight;
+        }
+    });
+</script>
+</body>
+</html>
